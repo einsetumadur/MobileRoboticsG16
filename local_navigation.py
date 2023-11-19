@@ -1,0 +1,1 @@
+#This function represents the local navigation of our project
