@@ -1,16 +1,14 @@
 from tdmclient import ClientAsync, aw
 
-class thymio:
+class thymio_robot:
     def __init__(self):
         self.__start_robot()
-        print(3)
 
 
     def __start_robot(self):
         self.client = ClientAsync()
         self._node = aw(self.client.wait_for_node()) #_ = protected #__ = private = shouldn't access node outside of the class
         aw(self._node.lock())
-        print(2)
 
     def __motors(self, l_speed=500, r_speed=500):
         return {
@@ -26,14 +24,15 @@ class thymio:
         aw(self.client.sleep(time))
         # stop the robot
         aw(self._node.set_variables(self.__motors(0, 0)))
+        # Initialization of Thymio parameters
+        # Radius of the wheel
+        #R = 20 
+        # Distance between wheel axes
+        #L = 105 
         
     def unlock_robot(self):
-        self._node.unlock()
+        #self._node.unlock()
 
     #def __del__(self):
-        #Now unlock the robot: in aseba
+        #ow unlock the robot: in aseba
         #self._node.unlock()
-# Example usage:
-thymia = thymio()
-thymia.rotate(6.28, 100)
-thymia.unlock_robot()
