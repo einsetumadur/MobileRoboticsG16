@@ -26,4 +26,4 @@ def obstacles_pos_from_sensor_vals(sensor_vals):
     dx_from_sensor = [d*math.cos(alpha) for (d, alpha) in zip(dist_to_sensor, sensor_angles)]
     dy_from_sensor = [d*math.sin(alpha) for (d, alpha) in zip(dist_to_sensor, sensor_angles)]
     obstacles_pos = [[x[0]+dx, x[1]+dy] for (x,dx,dy) in zip(sensor_pos_from_center,dx_from_sensor,dy_from_sensor )]
-    return np.array(abs.obstacles_pos)
+    return np.array(abs_obstacles_pos)

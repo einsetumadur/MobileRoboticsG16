@@ -30,7 +30,7 @@ class thymio_robot:
         # Distance between wheel axes
         #L = 105 
         
-    def unlock_robot(self):
+    #def unlock_robot(self):
         #self._node.unlock()
 
     #def __del__(self):
