@@ -1,29 +1,119 @@
-#This function represents the local navigation of our project : 
+#Functions : 
 
-#Important information : sensor detect the obstacle's accurately from 3cm to 13cm ; Over 14cm it doesn't detect them anymore.
-#Goal : 
-#The Robot will avoid the obstacle either on the right if obstacle detected on teh right side, either on the left.
-#The obstacle is assumed as passed if the absolute position of the robot is back on the track computed by 
-#A* (= finite number of absolute coordinates on the official path.)
-#we will implement an uncertainty of the position of 2 meshs
+#1: not used
+speed0 = 100       # nominal speed
+speedGain = 2      # gain used with ground gradient
+obstThrL = 10      # low obstacle threshold to switch state 1->0
+obstThrH = 20      # high obstacle threshold to switch state 0->1
+obstSpeedGain = 5  # /100 (actual gain: 5/100=0.05)
 
-#Local navigation True/False (Bolean) 
+state = 1          # 0=gradient, 1=obstacle avoidance
+obst = [0,0]       # measurements from left and right prox sensors
+angle=-10 #c'est pour les tests
+#timer_period[0] = 10   # 10ms sampling time
 
 
-#Steps: 1.sensors values as input
-#       2.create a local map : plot it for tests.
-#       3.2 either put the coordinates into array of vision
-#       3.3 or escape on our own the obstacle
+async def local_navigation2():
+    # acquisition from ground sensor for going toward the goal
+    if (angle>0):
+        obstacle_state="obstacle_passed"
+    # acquisition from the proximity sensors to detect obstacles
+    
+    obst = await get_proximity_values()
+    # tdmclient does not support yet multiple and/or in if statements:
+    if obstacle_state=="obstacle_passed": 
+        # switch from goal tracking to obst avoidance if obstacle detected
+        if (obst[0] > obstThrH):
+            obstacle_state = "obstacle_detected"
+        elif (obst[5] > obstThrH):
+            obstacle_state = "obstacle_detected"
+    elif obstacle_state == "obstacle_detected":
+        if obst[0] < obstThrL:
+            if obst[5] < obstThrL : 
+                # switch from obst avoidance to goal tracking if obstacle got unseen
+                obstacle_state="obstacle_passed"
+                
+    if  obstacle_state=="obstacle_passed":
+        # goal tracking: turn toward the goal
+        await forward(100)
+    else:
+        # obstacle avoidance: accelerate wheel near obstacle
+        motor_left_target = speed0 + obstSpeedGain * (obst[0] // 100)
+        motor_right_target = speed0 + obstSpeedGain * (obst[1] // 100)
+        await motorset(motor_left_target,motor_right_target)
 
-def obstacles_pos_from_sensor_vals(sensor_vals):
-    """
-    Returns a list containing the position of the obstacles
-    w.r.t the center of the Thymio robot. 
-    :param sensor_vals: sensor values provided clockwise starting from the top left sensor.
-    :return: numpy.array() that contains the position of the different obstacles
-    """
-    dist_to_sensor = [sensor_val_to_cm_dist(x) for x in sensor_vals]
-    dx_from_sensor = [d*math.cos(alpha) for (d, alpha) in zip(dist_to_sensor, sensor_angles)]
-    dy_from_sensor = [d*math.sin(alpha) for (d, alpha) in zip(dist_to_sensor, sensor_angles)]
-    obstacles_pos = [[x[0]+dx, x[1]+dy] for (x,dx,dy) in zip(sensor_pos_from_center,dx_from_sensor,dy_from_sensor )]
-    return np.array(abs_obstacles_pos)
+
+#Local navigation 2 : Not used
+## Parameters for local navigation
+threshold_obst = 3500 
+threshold_loc = 2500
+local_motor_speed = 100
+threshold_obst_list = [3200, 3600, 3600, 3600, 3200]
+
+async def local_navigation():
+    threshold_obst = 1000
+    threshold_loc = 800
+    local_motor_speed = 200
+    threshold_obst_list = [3200, 3600, 3600, 3600, 3200]
+    sens = await get_proximity_values()
+
+    # Follow the obstacle by the left
+    if (sens[0] + sens[1]) > (sens[4] + sens[3]):
+        await bypass('right', sens, threshold_loc, local_motor_speed)
+        
+    # Follow the obstacle by the right    
+    else:
+        await bypass('left', sens, threshold_loc, local_motor_speed)
+
+async def bypass(leftright, sens, threshold_loc, local_motor_speed):
+    global local_obstacle
+    if leftright == "right":
+        while sum(sens[i] > threshold_obst for i in range(0, 5)) > 0:
+            print("Turn right")
+            #await rotate(np.pi/6/2, local_motor_speed)
+            await motorset(100,-100)
+            #await asyncio.sleep(0.2)
+            sens = await get_proximity_values()
+            print(sens)
+
+        await forward(local_motor_speed)
+        time.sleep(2)
+
+
+        while sens[0] < threshold_loc:
+            await motorset(-50,50)
+            #await asyncio.sleep(0.2)
+            #time.sleep(2)
+            sens = await get_proximity_values()
+            local_obstacle=False
+            
+        
+        
+
+    elif leftright == "left":
+        while sum(sens[i] > threshold_loc for i in range(0, 5)) > 0:
+            print("Turn left")
+            await rotate(-np.pi/6, local_motor_speed)
+            #await asyncio.sleep(0.2)
+            sens = await get_proximity_values()
+
+        while sens[4] > threshold_loc:
+            await forward(local_motor_speed)
+            #await asyncio.sleep(0.2)
+            #time.sleep(0.2)
+            sens = await get_proximity_values()
+
+    if(leftright=="right" and sens[0] > threshold_loc):
+        await rotate(np.pi/2, 100)
+    
+
+    await forward(local_motor_speed)
+    #time.sleep(2)
+    await stop_motor()
+
+# Run the local_navigation function
+#await local_navigation()
+#test local navigation
+
+
+
