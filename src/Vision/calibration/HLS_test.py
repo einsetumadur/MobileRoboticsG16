@@ -58,8 +58,9 @@ def on_high_L_thresh_trackbar(val):
 parser = argparse.ArgumentParser(description='Code for Thresholding Operations using inRange tutorial.')
 parser.add_argument('--camera', help='Camera divide number.', default=0, type=int)
 args = parser.parse_args()
-cap = cv.VideoCapture(args.camera)
-videopath = r'./test_data/redpos_blueborder.avi'
+cap = cv.VideoCapture(0)
+#frame = cv.imread('./test_map.png')
+#videopath = r'./test_data/redpos_blueborder.avi'
 #cap = cv.VideoCapture(videopath)
 cv.namedWindow(window_capture_name)
 cv.namedWindow(window_detection_name)
