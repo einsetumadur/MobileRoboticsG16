@@ -4,6 +4,92 @@ import matplotlib.pyplot as plt
 from matplotlib import colors
 import cv2
 
+### UTILE 
+
+
+# give the path with point of changing direction
+def global_final(occupancy_grid, start, goal, movement , plot=False): 
+    occupancy_grid = cv2.flip(occupancy_grid,1)
+    if plot:
+        print('Initial Map:')
+        fig, ax =create_empty_plot(occupancy_grid.shape[0], occupancy_grid.shape[1])
+        cmap = colors.ListedColormap(['white', 'black']) # Select the colors with which to display obstacles and free cells
+        ax.imshow(occupancy_grid.transpose(), cmap=cmap)
+        ax.scatter(start[0], start[1], marker="o", color = 'green', s=200)
+        ax.scatter(goal[0], goal[1], marker="o", color = 'purple', s=200)
+        plt.title("Map : free cells in white, occupied cells in black")
+
+    path, visitedNodes = get_path(occupancy_grid, start, goal, movement)
+    if plot:
+        path2 =np.array(path).reshape(-1, 2).transpose()
+        print('Map with optimal path')
+        fig_astar, ax_astar = create_empty_plot(occupancy_grid.shape[0], occupancy_grid.shape[1])
+        ax_astar.imshow(occupancy_grid.transpose(), cmap=cmap)
+        ax_astar.scatter(visitedNodes[0], visitedNodes[1], marker="o", color = 'orange')
+        ax_astar.plot(path2[0], path2[1], marker="o", color = 'blue')
+        ax_astar.scatter(start[0], start[1], marker="o", color = 'green', s=200)
+        ax_astar.scatter(goal[0], goal[1], marker="o", color = 'purple', s=200)
+    return changement_direction(path)
+
+# give the next local goal for a position on the path
+def next_checkpoint(path, position_idx):
+    for i in range(len(path) - 1):
+        x1, y1 = path[i]
+        x2, y2 = path[i+1]
+
+        if (x1, y1) == position_idx:
+            return path[i+1]
+
+        if (x1 <= position_idx[0] <= x2 or x1 >= position_idx[0] >= x2) and \
+           (y1 <= position_idx[1] <= y2 or y1 >= position_idx[1] >= y2):
+            return path[i+1]
+
+    return None  
+
+
+#convert a position into a cell on the grid
+def convert_to_idx(position, size_cell):
+    idx =[0,0]
+    idx[0] = int(np.floor(position[0]/size_cell))
+    idx[1] = int(np.floor(position[1]/size_cell))
+    return idx
+
+# test if the robot is on a local goal
+def test_if_goal(goal, position_robot):
+
+    if convert_to_idx(position_robot,2) == goal:
+        return True
+    else:
+        return False
+
+
+
+
+
+## Inutile 
+
+def changement_direction(path):
+    if len(path) < 2:
+        return []
+
+    points_changement_direction = [path[0]]
+
+    for i in range(1, len(path)-1):
+        x1, y1 = path[i-1]
+        x2, y2 = path[i]
+        x3, y3 = path[i+1]
+
+        pente1 = (y2 - y1) / (x2 - x1) if (x2 - x1) != 0 else float('inf')
+        pente2 = (y3 - y2) / (x3 - x2) if (x3 - x2) != 0 else float('inf')
+
+        if pente1 != pente2:
+            points_changement_direction.append(path[i])
+
+    points_changement_direction.append(path[-1])
+
+    return points_changement_direction
+
+
 
 def _get_movements_4n():
     """
@@ -166,7 +252,6 @@ def get_path(occupancy_grid,start, goal, movement):
     h = dict(zip(coords, h))
 
     path, visitedNodes  = A_Star(start, goal, h , coords, occupancy_grid, movement_type=movement)
-    path = np.array(path).reshape(-1, 2).transpose()
     visitedNodes = np.array(visitedNodes).reshape(-1, 2).transpose()
     return path, visitedNodes
 
@@ -197,30 +282,3 @@ def create_empty_plot(max_val1, max_val2):
     
     return fig, ax
 
-
-def global_final(occupancy_grid, start, goal, movement , plot=False): 
-    occupancy_grid = cv2.flip(occupancy_grid,1)
-    if plot:
-        print('Initial Map:')
-        fig, ax =create_empty_plot(occupancy_grid.shape[0], occupancy_grid.shape[1])
-        cmap = colors.ListedColormap(['white', 'black']) # Select the colors with which to display obstacles and free cells
-        ax.imshow(occupancy_grid.transpose(), cmap=cmap)
-        ax.scatter(start[0], start[1], marker="o", color = 'green', s=200)
-        ax.scatter(goal[0], goal[1], marker="o", color = 'purple', s=200)
-        plt.title("Map : free cells in white, occupied cells in black")
-
-    path, visitedNodes = get_path(occupancy_grid, start, goal, movement)
-    if plot:
-        print('Map with optimal path')
-        fig_astar, ax_astar = create_empty_plot(occupancy_grid.shape[0], occupancy_grid.shape[1])
-        ax_astar.imshow(occupancy_grid.transpose(), cmap=cmap)
-        ax_astar.scatter(visitedNodes[0], visitedNodes[1], marker="o", color = 'orange')
-        ax_astar.plot(path[0], path[1], marker="o", color = 'blue')
-        ax_astar.scatter(start[0], start[1], marker="o", color = 'green', s=200)
-        ax_astar.scatter(goal[0], goal[1], marker="o", color = 'purple', s=200)
-    return path
-
-
-
-
-    
