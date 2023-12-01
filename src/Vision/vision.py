@@ -1,6 +1,5 @@
 import cv2 
 import numpy as np
-import math
 
 GREEN_HSL_MIN    = (106,43,44)
 GREEN_HSL_MAX    = (143,256,256)
@@ -19,6 +18,9 @@ ROBOT_BLOB_FILT     = (True,True,True,True,False)
 ROBOT_BLOB_VAL      = (80,1000,0.8,1,255,0.7,1,0.1,1)
 DEST_BLOB_FILT      = (True,True,True,False,False)
 DEST_BLOB_VAL       = (100,10000,0.8,1,255,0.7,1,0.1,1)
+
+EPSILON_PIXEL = 2
+SHAPE_RATIO = 4/6
 
 def blob_param(filters,values):
     params = cv2.SimpleBlobDetector_Params()
@@ -230,11 +232,9 @@ def get_destination(frame):
 def get_Robot_position_orientation(hls_frame,blobfil,kernsize):
 
     kernel = np.ones((kernsize,kernsize),np.uint8)
-    errpx = 2
-    ratio = 4/6
     # 1 - filter for dots
-    Redup = cv2.inRange(hls_frame,(240,60,75), (255,255,255))
-    Reddown = cv2.inRange(hls_frame,(0,60,75), (10,255,255))
+    Redup = cv2.inRange(hls_frame,RED_UP_HSL_MIN, RED_UP_HSL_MAX)
+    Reddown = cv2.inRange(hls_frame,RED_DOWN_HSL_MIN,RED_DOWN_HSL_MAX)
     Red = cv2.bitwise_or(Redup,Reddown)
     Red = cv2.morphologyEx(Red, cv2.MORPH_CLOSE, kernel)
     ndot,ptlist = blob_point_list(Red,ROBOT_BLOB_FILT,ROBOT_BLOB_VAL)
@@ -249,8 +249,8 @@ def get_Robot_position_orientation(hls_frame,blobfil,kernsize):
         print("red blob nb {}".format(ndot))
         return False,[0,0],0,[0,0]
     dmax = np.max(d_table)
-    longidx = np.int8(abs(dmax - d_table) < errpx)
-    shortidx = np.int8(abs(dmax*ratio - d_table) < errpx)
+    longidx = np.int8(abs(dmax - d_table) < EPSILON_PIXEL)
+    shortidx = np.int8(abs(dmax*SHAPE_RATIO - d_table) < EPSILON_PIXEL)
     #print("long:{} short:{}".format(np.sum(longidx),np.sum(shortidx)))
     if(np.sum(shortidx) == 1 and np.sum(longidx) == 2):
     # 4 - compute pos and orientation
