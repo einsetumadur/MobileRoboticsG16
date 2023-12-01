@@ -24,9 +24,7 @@ size = (frame_width, frame_height)
 # Below VideoWriter object will create 
 # a frame of above defined The output  
 # is stored in 'filename.avi' file. 
-result = cv2.VideoWriter('redpos_blueborder.avi',  
-                         cv2.VideoWriter_fourcc(*'MJPG'), 
-                         10, size) 
+result = cv2.VideoWriter('Charcuro.avi',  cv2.VideoWriter_fourcc(*'MJPG'), 10, size) 
     
 while(True): 
     ret, frame = video.read() 
@@ -35,7 +33,7 @@ while(True):
   
         # Write the frame into the 
         # file 'filename.avi' 
-        result.write(frame) 
+        
   
         # Display the frame 
         # saved in the file 
@@ -44,6 +42,8 @@ while(True):
         # Press S on keyboard  
         # to stop the process 
         if cv2.waitKey(1) & 0xFF == ord('s'): 
+            result.write(frame) 
+        if cv2.waitKey(1) & 0xFF == ord('q'): 
             break
   
     # Break the loop 
