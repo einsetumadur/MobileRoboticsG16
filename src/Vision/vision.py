@@ -229,7 +229,7 @@ def get_destination(frame):
         return (0,0)
 
 
-def get_Robot_position_orientation(hls_frame,blobfil,kernsize):
+def get_Robot_position_orientation(hls_frame,kernsize):
 
     kernel = np.ones((kernsize,kernsize),np.uint8)
     # 1 - filter for dots
