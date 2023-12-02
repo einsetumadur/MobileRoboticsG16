@@ -2,7 +2,7 @@ import cv2
 import vision
 import numpy as np
 
-REFRAME = True
+REFRAME = False
 MAP_SHAPE = (1000,700)
 
 #img = cv2.imread("./test_data/test_map.png")
@@ -10,7 +10,7 @@ MAP_SHAPE = (1000,700)
 
 cap = cv2.VideoCapture(0)
 if REFRAME:
-    Tmap = vision.get_warp(cap,MAP_SHAPE,20,1)
+    Tmap = vision.get_warp(cap,MAP_SHAPE,10,1)
 dest = [0,0]
 orient = 0
 robpos = [0,0]
@@ -36,7 +36,7 @@ while True:
         #visualization functions
         omap =vision.grid_fixedmap_visualizer(fmap,MAP_SHAPE)
         obsimg = cv2.merge([omap,omap,omap])
-        vizu = cv2.bitwise_or(vizu,obsimg)
+        #vizu = cv2.bitwise_or(vizu,obsimg)
         vizu = vision.draw_obstacles_poly(vizu,cont,(255,255,0),2)
         vizu = cv2.circle(vizu,dest,20,(50,25,100),4)
         vizu = cv2.addWeighted(vizu,0.5,frame,0.5,0)

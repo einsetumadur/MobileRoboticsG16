@@ -1,3 +1,4 @@
+
 #Thymio control functions 
 def motors(l_speed=500, r_speed=500):
     return {
@@ -5,13 +6,14 @@ def motors(l_speed=500, r_speed=500):
         "motor.right.target": [r_speed],
     }
 
-async def forward(node, motor_speed):
+async def forward(node,motor_speed):
     await node.set_variables(motors(motor_speed,motor_speed))
 
 async def motorset(node,motor_speed_left,motor_speed_right):
     await node.set_variables(motors(motor_speed_left,motor_speed_right))
 
-async def rotate(node,theta, motor_speed): #theta is in radians
+async def rotate(client,theta, motor_speed): #theta is in radians
+    node = await client.wait_for_node()
     direction_rot=(theta>=0)-(theta<0)
     await node.set_variables(motors(motor_speed*direction_rot, -motor_speed*direction_rot))
     # wait time to get theta 1.44 is the factor to correct
@@ -23,7 +25,7 @@ async def rotate(node,theta, motor_speed): #theta is in radians
 async def stop_motor(node):
     await node.set_variables(motors(0,0))
 
-async def get_proximity_values(node):
+async def get_proximity_values(client):
     # Wait for the Thymio node
     node = await client.wait_for_node()
     # Wait for the proximity sensor variables
