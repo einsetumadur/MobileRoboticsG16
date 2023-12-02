@@ -60,7 +60,7 @@ async def move_to_goal (client, x_est, goal, speed):
     print(angle_goal-angle_robot)
 
     await rotate(client, angle_robot-angle_goal, speed)
-    await move_forward(client, 100, 2)
+    await move_forward(client, 100, 4)
 
 
 def compute_angle(x1,x2 ):
