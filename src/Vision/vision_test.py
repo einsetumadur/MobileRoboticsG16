@@ -7,6 +7,8 @@ REFRAME = True
 IMAGE = False
 MAP_SHAPE = (1000,700)
 
+cap = cv2.VideoCapture(0)
+
 if IMAGE:
     img = cv2.imread("./test_data/test_map.png")
     if REFRAME:
@@ -37,11 +39,12 @@ while True:
         vizu = vision.visualizer(HLS)
         # get fixed obstacle map
         fmap = vision.get_grid_fixed_map(frame,(100,70),50)
-        # get fixed obstacle contours
+        # get fixed obstacle contoursaq
         cont = vision.get_obstacles(frame,50,10)
         # find dest position
         dest = vision.get_destination(frame)
         # find robot
+        gotpos,robpos,pxpcm,orient = vision.get_Robot_position_orientation(HLS,5)
         gotpos,robpos,pxpcm,orient = vision.get_Robot_position_orientation(HLS,5)
 
         #visualization functions

@@ -190,7 +190,7 @@ def get_grid_fixed_map(frame,shape,tresh):
     pxmap = cv2.morphologyEx(pxmap,cv2.MORPH_OPEN,kernel)
     temp = cv2.resize(pxmap, shape, interpolation=cv2.INTER_LINEAR)
     _,output = cv2.threshold(temp,10,1,type=cv2.THRESH_BINARY)
-    return output
+    return output.transpose()
 
 def grid_fixedmap_visualizer(fmap,shape):
     fmap = fmap*255

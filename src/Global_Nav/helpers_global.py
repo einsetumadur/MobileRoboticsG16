@@ -10,6 +10,7 @@ import cv2
 # give the path with point of changing direction
 def global_final(occupancy_grid, start, goal, movement , plot=False): 
     occupancy_grid = cv2.flip(occupancy_grid,1)
+    
     if plot:
         print('Initial Map:')
         fig, ax =create_empty_plot(occupancy_grid.shape[0], occupancy_grid.shape[1])
