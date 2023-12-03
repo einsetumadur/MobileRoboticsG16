@@ -1,22 +1,33 @@
 import cv2
 import vision
 import numpy as np
+import psymap as pm
 
-REFRAME = False
+REFRAME = True
+IMAGE = False
 MAP_SHAPE = (1000,700)
 
-#img = cv2.imread("./test_data/test_map.png")
-#Tmap = vision.get_warp_image(img,(1000,700),10)
+if IMAGE:
+    img = cv2.imread("./test_data/test_map.png")
+    if REFRAME:
+        Tmap = vision.get_warp_image(img,(1000,700),20)
+else:
+    cap = cv2.VideoCapture(0)
+    if REFRAME:
+        Tmap = vision.get_warp(cap,MAP_SHAPE,10,1)
 
-cap = cv2.VideoCapture(0)
-if REFRAME:
-    Tmap = vision.get_warp(cap,MAP_SHAPE,10,1)
+
 dest = [0,0]
-orient = 0
+orient = 0.0
 robpos = [0,0]
 pxpcm = 10
 while True:
-    ret,frame = cap.read()
+    if IMAGE:
+        ret = True
+        frame = img
+    else:
+        ret,frame = cap.read()
+
     if ret:
         # maps capture to map
         if REFRAME:
@@ -31,12 +42,13 @@ while True:
         # find dest position
         dest = vision.get_destination(frame)
         # find robot
-        gotpos,robpos,pxpcm,orient = vision.get_Robot_position_orientation(HLS,1,5)
+        gotpos,robpos,pxpcm,orient = vision.get_Robot_position_orientation(HLS,5)
 
         #visualization functions
         omap =vision.grid_fixedmap_visualizer(fmap,MAP_SHAPE)
         obsimg = cv2.merge([omap,omap,omap])
         #vizu = cv2.bitwise_or(vizu,obsimg)
+        vizu = pm.hallucinate_map([robpos[0],robpos[1],orient],cont,vizu)
         vizu = vision.draw_obstacles_poly(vizu,cont,(255,255,0),2)
         vizu = cv2.circle(vizu,dest,20,(50,25,100),4)
         vizu = cv2.addWeighted(vizu,0.5,frame,0.5,0)

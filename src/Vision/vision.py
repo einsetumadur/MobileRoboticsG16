@@ -13,7 +13,7 @@ RED_DOWN_HSL_MAX = (10,256,256)
 # Blob parameters = filter (byArea,byCirc,byCol,byConv,byInert)
 #                   values (minArea,maxArea,minCirc,...,maxInert)
 CORNER_BLOB_FILT    = (True,False,True,False,False)
-CORNER_BLOB_VAL     = (200,4000,0.5,1,255,0.2,1,0.1,1)
+CORNER_BLOB_VAL     = (300,4000,0.5,1,255,0.2,1,0.1,1)
 ROBOT_BLOB_FILT     = (True,True,True,True,False)
 ROBOT_BLOB_VAL      = (80,1000,0.8,1,255,0.7,1,0.1,1)
 DEST_BLOB_FILT      = (True,True,True,False,False)
@@ -229,7 +229,7 @@ def get_destination(frame):
         return (0,0)
 
 
-def get_Robot_position_orientation(hls_frame,blobfil,kernsize):
+def get_Robot_position_orientation(hls_frame,kernsize):
 
     kernel = np.ones((kernsize,kernsize),np.uint8)
     # 1 - filter for dots
@@ -247,7 +247,7 @@ def get_Robot_position_orientation(hls_frame,blobfil,kernsize):
                 d_table[p1,p2] = dist(ptlist[p1],ptlist[p2])
     else: 
         print("red blob nb {}".format(ndot))
-        return False,[0,0],0,[0,0]
+        return False,[0,0],0,0
     dmax = np.max(d_table)
     longidx = np.int8(abs(dmax - d_table) < EPSILON_PIXEL)
     shortidx = np.int8(abs(dmax*SHAPE_RATIO - d_table) < EPSILON_PIXEL)
@@ -261,9 +261,9 @@ def get_Robot_position_orientation(hls_frame,blobfil,kernsize):
         scale = d_table[pairAB]/4
         ptC = np.array([int(ptlist[Cidx[0][0]][0]),int(ptlist[Cidx[0][0]][1])])
         dirvect = ptC - center
-        orient = np.arctan2(dirvect[1],dirvect[0])
+        orient = -np.arctan2(dirvect[1],dirvect[0])
         return True,center,scale,orient
     else:
         print("wrong pattern")    
-        return False,[0,0],0,[0,0]
+        return False,[0,0],0,0
     
