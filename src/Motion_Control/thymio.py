@@ -13,7 +13,7 @@ async def forward(node,motor_speed):
     await node.set_variables(motors(motor_speed,motor_speed))
 
 async def move_forward(client, motor_speed, dist):
-    if not dist<0.001:
+    if not dist<0.01:
         node = await client.wait_for_node()
         await node.set_variables(motors(motor_speed, motor_speed))
         # wait time to get theta 1.44 is the factor to correct
@@ -51,8 +51,9 @@ async def get_proximity_values(client):
     return proximity_values[0:5]
 
 
+
+
 async def move_to_goal (client, x_est, goal, speed): 
-   
     position_robot = [x_est[0],x_est[1]]
     angle_robot = x_est[2]
     pos_idx = convert_to_idx(position_robot,2)
@@ -62,11 +63,25 @@ async def move_to_goal (client, x_est, goal, speed):
     await rotate(client, angle_robot-angle_goal, speed)
     await move_forward(client, 100, 4)
 
+async def move_to_goal2(client,rob_pos_abs, goal, motor_speed):
+    x = rob_pos_abs[0]
+    y = rob_pos_abs[1]
+    angle_rob = rob_pos_abs[2]
+    absolut_angle_to_goal=math.atan2(y_disp, x_disp)
+
+    x_disp = goal[0] - x
+    y_disp = goal[1] - y
+
+    dist_to_goal = math.sqrt(x_disp**2 + y_disp**2)
+    theta = (absolut_angle_to_goal- angle_rob) % (2 * math.pi)
+    await rotate(client,theta,motor_speed)
+    await move_forward(client, motor_speed, dist_to_goal)
+
+
 
 def compute_angle(x1,x2 ):
     """Calculer l'angle entre la direction actuelle et la direction vers l'arrivée."""
     angle_rad = math.atan2(x2[1] - x1[1], x2[0] - x1[0])
-    #angle_deg = math.degrees(angle_rad)
     return angle_rad
 
 
