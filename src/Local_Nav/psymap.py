@@ -53,7 +53,6 @@ def hallucinate_map(rob,obstacles,img=None):
                     img = cv2.line(img,sensepoint.astype(np.int32),rangepoint.astype(np.int32),(100,100,100),1)
                 segp1 = obstacle[obidx-1][0,:].tolist()
                 segp2 = obstacle[obidx][0,:].tolist()
-                print(sensepoint,rangepoint)
                 dist,ix,iy = sensor_to_line_val(sensepoint,rangepoint,segp1,segp2)
                 if (dist is not None) and (minproxdist[sensor] > dist):
                     if img is not None:

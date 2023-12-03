@@ -1,7 +1,7 @@
 import cv2
 import vision
 import numpy as np
-import psymap as pm
+from ..Local_Nav import psymap as pm
 
 REFRAME = True
 IMAGE = False

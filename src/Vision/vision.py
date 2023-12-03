@@ -148,7 +148,7 @@ def paint_robot(frame,col,pos,ori,scal):
     upcorn = 6.3*scal
     width = (11*scal)/2
     back = 3*scal
-    rotMat = np.array([[sin, -cos],[cos, sin]])
+    rotMat = np.array([[sin,cos],[-cos,sin]])
     Ap = (rotMat @ [-width,-upcorn] + pos).astype(int)
     Bp = (rotMat @ [-width,back] + pos).astype(int)
     Cp = (rotMat @ [width,back] + pos).astype(int)
@@ -184,8 +184,8 @@ def visualizer(HLSframe):
   compd = cv2.drawKeypoints(compd, keypointsG, np.array([]), (255,255,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
   return compd
 
-def get_grid_fixed_map(frame,shape,tresh):
-    kernel = np.ones((5,5),np.uint8)
+def get_grid_fixed_map(frame,shape,tresh=50,kernsz=5):
+    kernel = np.ones((kernsz,kernsz),np.uint8)
     pxmap = cv2.inRange(frame,(0,0,0),(tresh,tresh,tresh))
     pxmap = cv2.morphologyEx(pxmap,cv2.MORPH_OPEN,kernel)
     temp = cv2.resize(pxmap, shape, interpolation=cv2.INTER_LINEAR)
@@ -196,7 +196,7 @@ def grid_fixedmap_visualizer(fmap,shape):
     fmap = fmap*255
     return cv2.resize(fmap, shape, interpolation=cv2.INTER_NEAREST)
 
-def get_obstacles(frame,tresh,eps):
+def get_obstacles(frame,tresh=50,eps=10):
     kernel = np.ones((5,5),np.uint8)
     pxmap = cv2.inRange(frame,(0,0,0),(tresh,tresh,tresh))
     pxmap = cv2.morphologyEx(pxmap,cv2.MORPH_OPEN,kernel)
@@ -223,13 +223,13 @@ def get_destination(frame):
     Green = cv2.morphologyEx(Green, cv2.MORPH_CLOSE,kernel)
     ndot,blobs = blob_point_list(Green,DEST_BLOB_FILT,DEST_BLOB_VAL)
     if ndot == 1:
-        return np.int32(blobs[0])
+        return True,np.int32(blobs[0])
     else:
         print("Warning: {} goals found".format(ndot),end='\r')
-        return (0,0)
+        return False,(0,0)
 
 
-def get_Robot_position_orientation(hls_frame,kernsize):
+def get_Robot_position_orientation(hls_frame,kernsize=5):
 
     kernel = np.ones((kernsize,kernsize),np.uint8)
     # 1 - filter for dots
@@ -246,7 +246,7 @@ def get_Robot_position_orientation(hls_frame,kernsize):
             for p2 in range(p1+1,ndot):
                 d_table[p1,p2] = dist(ptlist[p1],ptlist[p2])
     else: 
-        print("red blob nb {}".format(ndot))
+        print("shape points {}/3".format(ndot),end='\r')
         return False,[0,0],0,0
     dmax = np.max(d_table)
     longidx = np.int8(abs(dmax - d_table) < EPSILON_PIXEL)
@@ -262,8 +262,8 @@ def get_Robot_position_orientation(hls_frame,kernsize):
         ptC = np.array([int(ptlist[Cidx[0][0]][0]),int(ptlist[Cidx[0][0]][1])])
         dirvect = ptC - center
         orient = -np.arctan2(dirvect[1],dirvect[0])
-        return True,center,scale,orient
+        return True,center,orient,scale
     else:
-        print("wrong pattern")    
+        print("wrong pattern !    ",end='\r')    
         return False,[0,0],0,0
     
