@@ -33,19 +33,19 @@ def global_final(occupancy_grid, start, goal, movement , plot=False):
     return changement_direction(path)
 
 # give the next local goal for a position on the path
-def next_checkpoint(path, position_idx):
+def next_checkpoint(path, position):
     for i in range(len(path) - 1):
         x1, y1 = path[i]
         x2, y2 = path[i+1]
 
-        if (x1, y1) == position_idx:
+       # if (x1, y1) == position_idx:
+            #return path[i+1]
+
+        if (x1-0.5 <= position[0] <= x2+0.5 or x1-0.5>= position[0] >= x2+0.5) and \
+           (y1-0.5<= position[1] <= y2 +0.5 or y1-0.5>= position[1] >= y2+0.5):
             return path[i+1]
 
-        if (x1 <= position_idx[0] <= x2 or x1 >= position_idx[0] >= x2) and \
-           (y1 <= position_idx[1] <= y2 or y1 >= position_idx[1] >= y2):
-            return path[i+1]
-
-    return None  
+    return path[i]
 
 
 #convert a position into a cell on the grid
