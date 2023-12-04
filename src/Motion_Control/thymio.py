@@ -27,9 +27,12 @@ async def motorset(node,motor_speed_left,motor_speed_right):
     await node.set_variables(motors(motor_speed_left,motor_speed_right))
 
 async def rotate(client,theta, motor_speed): #theta is in radians
-    if not (theta < 0.01 ):
+    if not (abs(theta) < 0.01 ):
         node = await client.wait_for_node()
-        direction_rot=(theta>=0)-(theta<0)
+        if theta>=0:
+            direction_rot=1
+        else: 
+            direction_rot=0
         await node.set_variables(motors(motor_speed*direction_rot, -motor_speed*direction_rot))
         # wait time to get theta 1.44 is the factor to correct
         time=(theta)*100/motor_speed*1.40
@@ -67,13 +70,15 @@ async def move_to_goal2(client,rob_pos_abs, goal, motor_speed):
     x = rob_pos_abs[0]
     y = rob_pos_abs[1]
     angle_rob = rob_pos_abs[2]
-    absolut_angle_to_goal=math.atan2(y_disp, x_disp)
+    absolut_angle_to_goal=math.atan2(y, x)
 
     x_disp = goal[0] - x
     y_disp = goal[1] - y
 
     dist_to_goal = math.sqrt(x_disp**2 + y_disp**2)
     theta = (absolut_angle_to_goal- angle_rob) % (2 * math.pi)
+    print(dist_to_goal)
+    print(theta)
     await rotate(client,theta,motor_speed)
     await move_forward(client, motor_speed, dist_to_goal)
 
