@@ -1,7 +1,7 @@
 import cv2
 import vision
 import numpy as np
-from ..Local_Nav import psymap as pm
+import psymap as pm
 
 REFRAME = True
 IMAGE = False
@@ -19,7 +19,7 @@ else:
         Tmap = vision.get_warp(cap,MAP_SHAPE,10,1)
 
 
-dest = [0,0]
+dest = (0,0)
 orient = 0.0
 robpos = [0,0]
 pxpcm = 10

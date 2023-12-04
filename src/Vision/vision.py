@@ -3,9 +3,9 @@ import numpy as np
 
 GREEN_HSL_MIN    = (106,43,44)
 GREEN_HSL_MAX    = (143,256,256)
-BLUE_HSL_MIN     = (141,37,73)
+BLUE_HSL_MIN     = (141,30,70)
 BLUE_HSL_MAX     = (172,256,256)
-RED_UP_HSL_MIN   = (240,50,39)
+RED_UP_HSL_MIN   = (240,35,30)
 RED_UP_HSL_MAX   = (255,256,256)
 RED_DOWN_HSL_MIN = (0,50,40)
 RED_DOWN_HSL_MAX = (10,256,256)
@@ -15,7 +15,7 @@ RED_DOWN_HSL_MAX = (10,256,256)
 CORNER_BLOB_FILT    = (True,False,True,False,False)
 CORNER_BLOB_VAL     = (300,4000,0.5,1,255,0.2,1,0.1,1)
 ROBOT_BLOB_FILT     = (True,True,True,True,False)
-ROBOT_BLOB_VAL      = (80,1000,0.8,1,255,0.7,1,0.1,1)
+ROBOT_BLOB_VAL      = (80,2000,0.8,1,255,0.7,1,0.1,1)
 DEST_BLOB_FILT      = (True,True,True,False,False)
 DEST_BLOB_VAL       = (100,10000,0.8,1,255,0.7,1,0.1,1)
 
@@ -140,7 +140,6 @@ def get_warp_image(cimg,ROI,pad=0):
 def paint_robot(frame,col,pos,ori,scal):
     thick = 2
     fang = 42
-    ori = -ori
     cos = np.cos(ori)
     sin = np.sin(ori)
     scal = int(scal)
@@ -148,7 +147,7 @@ def paint_robot(frame,col,pos,ori,scal):
     upcorn = 6.3*scal
     width = (11*scal)/2
     back = 3*scal
-    rotMat = np.array([[sin,cos],[-cos,sin]])
+    rotMat = np.array([[sin,-cos],[cos,sin]])
     Ap = (rotMat @ [-width,-upcorn] + pos).astype(int)
     Bp = (rotMat @ [-width,back] + pos).astype(int)
     Cp = (rotMat @ [width,back] + pos).astype(int)
@@ -188,8 +187,11 @@ def get_grid_fixed_map(frame,shape,tresh=50,kernsz=5):
     kernel = np.ones((kernsz,kernsz),np.uint8)
     pxmap = cv2.inRange(frame,(0,0,0),(tresh,tresh,tresh))
     pxmap = cv2.morphologyEx(pxmap,cv2.MORPH_OPEN,kernel)
+    safecircle = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(80,80))
+    pxmap = cv2.dilate(pxmap,safecircle)
     temp = cv2.resize(pxmap, shape, interpolation=cv2.INTER_LINEAR)
     _,output = cv2.threshold(temp,10,1,type=cv2.THRESH_BINARY)
+    
     return output.transpose()
 
 def grid_fixedmap_visualizer(fmap,shape):
