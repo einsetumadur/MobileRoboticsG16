@@ -1,5 +1,6 @@
 from src.Local_Nav import psymap as pm
 from src.Motion_Control import thymio as th
+
 async def local_navigation(client,node,rob,obstacles):
 #async def local_navigation(client,node):
     proximity_values = await th.get_proximity_values(client)
@@ -7,22 +8,22 @@ async def local_navigation(client,node,rob,obstacles):
 
     #This are the tuned weights for the left and the right motor.
     #The weights corresponds to how much should the motor respond to each proximity value measured by the sensors
-    w_l = [40,  20, -20, -20, -40]
-    w_r = [-40, -20, -20,  20,  40]
+    w_l = [40,  20, -20, -40, -40]
+    w_r = [-40, -40, -20,  20,  40]
 
     # Scale factors for sensors and constant factor
     sensor_scale = 2000
     
     x = [0,0,0,0,0]
-    
+
     #Considering also the global obstacle as obstacles : 
-    x_glob=pm.hallucinate_map(rob,obstacles,img=None)
+    x_glob=pm.hallucinate_map(rob,obstacles)
 
     if state != 0:
         for i in range(5):
             # Get and scale inputs
-            #x[i] = (proximity_values[i] +x_glob[i])// sensor_scale
-            x[i] = (proximity_values[i]//sensor_scale)
+            x[i] = (proximity_values[i] +x_glob[i])// sensor_scale
+            # x[i] = (proximity_values[i]//sensor_scale)
         y = [100,100]    
         
         for i in range(len(x)):    

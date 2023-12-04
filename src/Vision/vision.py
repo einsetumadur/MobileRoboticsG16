@@ -183,12 +183,13 @@ def visualizer(HLSframe):
   compd = cv2.drawKeypoints(compd, keypointsG, np.array([]), (255,255,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
   return compd
 
-def get_grid_fixed_map(frame,shape,tresh=50,kernsz=5):
+def get_grid_fixed_map(frame,shape,tresh=50,kernsz=5,robrad=80):
     kernel = np.ones((kernsz,kernsz),np.uint8)
     pxmap = cv2.inRange(frame,(0,0,0),(tresh,tresh,tresh))
     pxmap = cv2.morphologyEx(pxmap,cv2.MORPH_OPEN,kernel)
-    safecircle = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(80,80))
-    pxmap = cv2.dilate(pxmap,safecircle)
+    if robrad is not 0:
+        safecircle = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(robrad,robrad))
+        pxmap = cv2.dilate(pxmap,safecircle)
     temp = cv2.resize(pxmap, shape, interpolation=cv2.INTER_LINEAR)
     _,output = cv2.threshold(temp,10,1,type=cv2.THRESH_BINARY)
     
@@ -198,10 +199,13 @@ def grid_fixedmap_visualizer(fmap,shape):
     fmap = fmap*255
     return cv2.resize(fmap, shape, interpolation=cv2.INTER_NEAREST)
 
-def get_obstacles(frame,tresh=50,eps=10):
+def get_obstacles(frame,tresh=50,eps=10,robrad=0):
     kernel = np.ones((5,5),np.uint8)
     pxmap = cv2.inRange(frame,(0,0,0),(tresh,tresh,tresh))
     pxmap = cv2.morphologyEx(pxmap,cv2.MORPH_OPEN,kernel)
+    if robrad is not 0:
+        safecircle = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(robrad,robrad))
+        pxmap = cv2.dilate(pxmap,safecircle)
     contp,hier =  cv2.findContours(pxmap,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
     obstacles = []
     for cont in contp:
