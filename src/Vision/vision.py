@@ -273,3 +273,16 @@ def get_Robot_position_orientation(hls_frame,kernsize=5):
         print("wrong pattern !    ",end='\r')    
         return False,[0,0],0,0
     
+def show_Kalman(img,mu,sigma,scale,color=(0,0,100),thickness=2):
+    center = mu[:2].transpose()[0].astype(int)
+    img = cv2.circle(img,center,2,color,thickness)
+    u, s, Vt = np.linalg.svd(sigma)
+    angle = np.degrees(np.arctan2(u[1, 0], u[0, 0]))
+    width, height,angvar,spvar,angdotvar = np.sqrt(s)
+    width = int(width)
+    height = int(height)
+    img = cv2.ellipse(img,center,(width,height),angle,0,360,color,thickness)
+    ang = mu[2][0]
+    spdvect = scale*(mu[3][0])*np.array([np.cos(ang),np.sin(ang)])
+    dirvect = np.add(center,spdvect).astype(np.int32)
+    map = cv2.line(map,center,dirvect,200,1)
