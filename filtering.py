@@ -7,7 +7,7 @@ TS = 0.1
 REAL_THYMIO_SPEED = 37.7 #mm/s
 REAL_THYMIO_ANGULAR_SPEED = 0.75 #rad/s
 COMMAND_MOTOR_FOR_CALIBRATION = 100
-STD_SPEED = 2 #mm^2/s^2
+STD_SPEED = 3 #mm^2/s^2
 STD_ANGULAR_SPEED = 0.04 #rad^2/s^2
 
 class RepeatedTimer(object):
@@ -61,22 +61,25 @@ def ex_kalman_filter(speed, angular_speed, bool_camera, position_camera, previou
 
     # Initialising the constants
     #Assuming that half of the varance is caused by the measurements and half by perturbations to the states
+    q_nu_translation = STD_SPEED / 2 # variance on speed measurement
     r_nu_translation = STD_SPEED / 2 # variance on speed measurement
     r_nu_rotation = STD_ANGULAR_SPEED / 2 # variance on angular speed measurement
+    q_nu_rotation = STD_ANGULAR_SPEED / 2 # variance on angular speed measurement
 
-    qp = 0.04 # variance on position state in mm chosen arbitrarily: √qp = 0.2
-    rp = 1 # variance on position measurement in mm
+    rp = 10 # variance on position measurement in mm
     rp_angle = 0.02 # variance on angle measurement in rad
 
-    # Q = np.array([[?, 0, 0, 0, 0],
-    #               [0, ?, 0, 0, 0],
-    #               [0, 0, ?, 0, 0],
-    #               [0, 0, 0, ?, 0],
-    #               [0, 0, 0, 0, ?]]) # process noise covariance matrix MUST CHANGE
-    Q = np.identity(5) * qp
+    Q = np.array([[0, 0, 0, 0, 0],
+                  [0, 0, 0, 0, 0],
+                  [0, 0, 0, 0, 0],
+                  [0, 0, 0, q_nu_translation, 0],
+                  [0, 0, 0, 0, q_nu_rotation]]) # process noise covariance matrix MUST CHANGE
+    #Q = np.identity(5) * qp
 
-    A = np.array([[1, 0, 0, np.cos(previous_state_estimation[2]).item() * dt, 0],
-                  [0, 1, 0, np.sin(previous_state_estimation[2]).item() * dt, 0],
+    theta = previous_state_estimation[2]
+
+    A = np.array([[1, 0, 0, np.cos(theta).item() * dt, 0],
+                  [0, 1, 0, np.sin(theta).item() * dt, 0],
                   [0, 0, 1, 0, dt],
                   [0, 0, 0, 1, 0],
                   [0, 0, 0, 0, 1]])
@@ -86,8 +89,8 @@ def ex_kalman_filter(speed, angular_speed, bool_camera, position_camera, previou
     #print("predicted_state_estimation angle", predicted_state_estimation[2])
     predicted_state_estimation[2] = predicted_state_estimation[2] % (2 * math.pi) # normalize the angle between 0 and 2pi    
 
-    predicted_state_estimation_jacobian = np.array([[1, 0, -previous_state_estimation[4].item() * np.sin(previous_state_estimation[2]).item() * dt, 0, 0],
-                                                    [0, 1, previous_state_estimation[4].item() * np.cos(previous_state_estimation[2]).item() * dt, 0, 0],
+    predicted_state_estimation_jacobian = np.array([[1, 0, - previous_state_estimation[3].item() * np.sin(theta).item() * dt, np.cos(theta).item() * dt, 0], 
+                                                    [0, 1, previous_state_estimation[3].item() * np.cos(theta).item() * dt, np.sin(theta).item() * dt, 0],
                                                     [0, 0, 1, 0, dt],
                                                     [0, 0, 0, 1, 0],
                                                     [0, 0, 0, 0, 1]])
@@ -99,7 +102,7 @@ def ex_kalman_filter(speed, angular_speed, bool_camera, position_camera, previou
     ## Update Step      
     if bool_camera and position_camera is not None:
         # camera position is available
-        y = np.array([[position_camera[0]], [position_camera[1]], [position_camera[2]], [speed], [angular_speed]])
+        y = np.array([[position_camera[0]],[position_camera[1]], [position_camera[2]], [speed], [angular_speed]])
         H = np.identity(5)
         R = np.array([[rp, 0, 0, 0, 0],
                       [0, rp, 0, 0, 0],
@@ -114,14 +117,16 @@ def ex_kalman_filter(speed, angular_speed, bool_camera, position_camera, previou
 
     # innovation / measurement residual
     i = y - np.dot(H, predicted_state_estimation)
+    #print("i", i)
     # measurement prediction covariance
     S = np.dot(H, np.dot(predicted_covariance_estimation, H.T)) + R
-             
+    #print("predicted_covariance_estimation", predicted_covariance_estimation)
     # Kalman gain (tells how much the predictions should be corrected based on the measurements)
     K = np.dot(predicted_covariance_estimation, np.dot(H.T, np.linalg.inv(S)))
-    
+    #print("K", K)
     # Updated state and covariance estimate
     state_estimation = predicted_state_estimation + np.dot(K, i)
+    #print("np.dot(K, i)", np.dot(K, i))
     #print("new state_estimation angle", state_estimation[2])
     P_estimation = np.dot((np.identity(5) - np.dot(K, H)), predicted_covariance_estimation)
      
