@@ -2,7 +2,7 @@ from src.Local_Nav import psymap as pm
 from src.Motion_Control import thymio as th
 
 async def local_navigation(client,node,rob,obstacles):
-#async def local_navigation(client,node):
+    local_navigation_state=1
     proximity_values = await th.get_proximity_values(client)
     state=1
 
@@ -19,13 +19,14 @@ async def local_navigation(client,node,rob,obstacles):
     #Considering also the global obstacle as obstacles : 
     x_glob=pm.hallucinate_map(rob,obstacles)
 
-    if state != 0:
+    if local_navigation_state:
         for i in range(5):
             # Get and scale inputs
             x[i] = (proximity_values[i] +x_glob[i])// sensor_scale
-            # x[i] = (proximity_values[i]//sensor_scale)
+
+        #y corresponds to the motor's command
         y = [100,100]    
-        
+
         for i in range(len(x)):    
             # Compute outputs of neurons and set motor powers
             y[0] = y[0] + x[i] * w_l[i]
