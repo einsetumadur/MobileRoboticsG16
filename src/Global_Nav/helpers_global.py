@@ -21,6 +21,7 @@ def global_final(occupancy_grid, start, goal, movement , plot=False):
         plt.title("Map : free cells in white, occupied cells in black")
 
     path, visitedNodes = get_path(occupancy_grid, start, goal, movement)
+    path = douglas_peucker(path, 1.5)
     if plot:
         path2 =np.array(path).reshape(-1, 2).transpose()
         print('Map with optimal path')
@@ -31,6 +32,8 @@ def global_final(occupancy_grid, start, goal, movement , plot=False):
         ax_astar.scatter(start[0], start[1], marker="o", color = 'green', s=200)
         ax_astar.scatter(goal[0], goal[1], marker="o", color = 'purple', s=200)
     return changement_direction(path)
+    
+    
 
 # give the next local goal for a position on the path
 def next_checkpoint(path, position):
@@ -38,11 +41,9 @@ def next_checkpoint(path, position):
         x1, y1 = path[i]
         x2, y2 = path[i+1]
 
-       # if (x1, y1) == position_idx:
-            #return path[i+1]
-
-        if (x1-0.5 <= position[0] <= x2+0.5 or x1-0.5>= position[0] >= x2+0.5) and \
-           (y1-0.5<= position[1] <= y2 +0.5 or y1-0.5>= position[1] >= y2+0.5):
+       
+        if (x1-0.8<= position[0] <= x2+0.8 or x1+0.8>= position[0] >= x2-0.8) and \
+           (y1-0.8<= position[1] <= y2+0.8 or y1+0.8>= position[1] >= y2-0.8):
             return path[i+1]
 
     return path[i]
@@ -283,3 +284,37 @@ def create_empty_plot(max_val1, max_val2):
     
     return fig, ax
 
+
+def douglas_peucker(coords, epsilon):
+    if len(coords) <= 2:
+        return [coords[0], coords[-1]]
+
+    # Find the point with the maximum distance
+    dmax = 0
+    index = 0
+    end = len(coords) - 1
+    for i in range(1, end):
+        d = point_to_line_distance(coords[i], coords[0], coords[end])
+        if d > dmax:
+            index = i
+            dmax = d
+
+    # If max distance is greater than epsilon, recursively simplify
+    if dmax > epsilon:
+        results1 = douglas_peucker(coords[:index + 1], epsilon)
+        results2 = douglas_peucker(coords[index:], epsilon)
+
+        # Combine the results
+        results = results1[:-1] + results2
+    else:
+        # Otherwise, keep the endpoints
+        results = [coords[0], coords[end]]
+
+    return results
+
+
+def point_to_line_distance(point, start, end):
+    numerator = abs((end[1] - start[1]) * point[0] - (end[0] - start[0]) * point[1] + end[0] * start[1] - end[1] * start[0])
+    denominator = ((end[1] - start[1]) ** 2 + (end[0] - start[0]) ** 2) ** 0.5
+    distance = numerator / denominator if denominator != 0 else 0
+    return distance

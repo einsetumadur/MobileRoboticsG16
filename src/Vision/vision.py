@@ -92,7 +92,7 @@ def get_warp(cap,ROI,pad=0,samples=1):
     rw = ROI[0] - pad
     rh = ROI[1] - pad
     Sheetpts = np.float32([[pad,pad],[rw,pad],[pad,rh],[rw,rh]])
-    print("Computing warp matrix")
+    #print("Computing warp matrix")
     smp = 0
     corners = np.zeros((4,2,samples))
     while smp < samples:
@@ -110,7 +110,7 @@ def get_warp(cap,ROI,pad=0,samples=1):
                     corners[:,:,smp] = corn
                     smp += 1
     avgCorn = np.mean(corners,axis=2,dtype=np.float32)    
-    print("Finished Warp Matrix computation.")       
+    #print("Finished Warp Matrix computation.")       
     return cv2.getPerspectiveTransform(avgCorn,Sheetpts)
 
 def get_warp_image(cimg,ROI,pad=0):
@@ -187,7 +187,7 @@ def get_grid_fixed_map(frame,shape,tresh=50,kernsz=5,robrad=80):
     kernel = np.ones((kernsz,kernsz),np.uint8)
     pxmap = cv2.inRange(frame,(0,0,0),(tresh,tresh,tresh))
     pxmap = cv2.morphologyEx(pxmap,cv2.MORPH_OPEN,kernel)
-    if robrad is not 0:
+    if robrad != 0:
         safecircle = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(robrad,robrad))
         pxmap = cv2.dilate(pxmap,safecircle)
     temp = cv2.resize(pxmap, shape, interpolation=cv2.INTER_LINEAR)
@@ -203,7 +203,7 @@ def get_obstacles(frame,tresh=50,eps=10,robrad=0):
     kernel = np.ones((5,5),np.uint8)
     pxmap = cv2.inRange(frame,(0,0,0),(tresh,tresh,tresh))
     pxmap = cv2.morphologyEx(pxmap,cv2.MORPH_OPEN,kernel)
-    if robrad is not 0:
+    if robrad != 0:
         safecircle = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(robrad,robrad))
         pxmap = cv2.dilate(pxmap,safecircle)
     contp,hier =  cv2.findContours(pxmap,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
