@@ -2,6 +2,7 @@ from src.Local_Nav import psymap as pm
 from src.Motion_Control import thymio as th
 import numpy as np
 
+
 async def local_navigation(client,node,rob,obstacles):
     local_navigation_state=1
     proximity_values = await th.get_proximity_values(client)
@@ -39,7 +40,7 @@ async def local_navigation(client,node,rob,obstacles):
         y = [0,0] 
     
     #considering the critical case where the left sensors tetect 
-    diff_left_right=abs((x[1]+x[2])-(x[4]+x[5]))
+    diff_left_right=abs((x[0]+x[1])-(x[3]+x[4]))
     if(diff_left_right<2000 and sum(x)>3500):
         if(x_glob[0]+x_glob[1]>x_glob[3]+x_glob[4]):
             th.rotate(client,np.pi/2, 100)
