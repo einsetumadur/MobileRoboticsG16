@@ -1,5 +1,8 @@
 import math
 import numpy as np
+import cv2
+from src.Global_Nav import helpers_global as gb
+from src.Vision import vision as vs
 
 
 #Thymio control functions 
@@ -86,8 +89,10 @@ async def move_to_goal2(client,rob_pos_abs, goal, motor_speed):
 
 def compute_angle(x1,x2 ):
     """Calculer l'angle entre la direction actuelle et la direction vers l'arrivée."""
-    angle_rad = math.atan2(x2[1] - x1[1], x2[0] - x1[0])
-    return angle_rad
+    y = x2[1] - x1[1]
+    x = x2[0] - x1[0]
+    
+    return math.atan2(y, x)
 
 
 def convert_to_idx(position, size_cell):
@@ -95,3 +100,50 @@ def convert_to_idx(position, size_cell):
     idx[0] = int(np.floor(position[0]/size_cell))
     idx[1] = int(np.floor(position[1]/size_cell))
     return idx
+
+
+
+def init(cap, REFRAME, MAP_SHAPE, VISUALIZE): 
+    # Get the path 
+
+    if REFRAME:
+        Tmap = vs.get_warp(cap,MAP_SHAPE,10,1)
+
+    while True:
+        ret,frame = cap.read()
+        if ret:
+        # maps capture to map
+            if REFRAME:
+            
+                frame = cv2.warpPerspective(frame,Tmap,MAP_SHAPE)
+            # maps BGR to HLS color space for simplicity
+            HLS = cv2.cvtColor(frame, cv2.COLOR_BGR2HLS_FULL)
+        
+    
+            fmap = vs.get_grid_fixed_map(frame,(50,35),50, robrad=150)
+        
+            # find dest position
+            bool_dest, dest = vs.get_destination(frame)
+        
+            if bool_dest:
+                dest = dest/10.0
+                dest[1] = 70-dest[1]
+                dest = gb.convert_to_idx(dest,2)
+                dest = tuple(dest)
+        
+                gotpos,robpos,orient, ppmx = vs.get_Robot_position_orientation(HLS,5)
+                if gotpos : 
+                    start=robpos
+                    start[1]= 700 -start[1]
+                    state_estimation_prev2 = np.array([[start[0]],[start[1]], [orient], [0],[0]])
+                    start = start/10.0
+                    print(state_estimation_prev2)
+                    start = gb.convert_to_idx(start,2)
+                    start = tuple(start)
+                    path = gb.global_final(fmap,start,dest, "8N", VISUALIZE)
+                    P_estimation_prev =  np.diag([100, 100, 0.75, 10, 0.75])
+                    
+                    break
+
+    return path, state_estimation_prev2, P_estimation_prev
+        
