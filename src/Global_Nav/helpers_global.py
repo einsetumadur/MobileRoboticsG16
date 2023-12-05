@@ -49,7 +49,7 @@ def next_checkpoint(path, position):
     return path[i]
 
 def next_checkpoint2(path, position, counter,local_obstacle):
-    if counter < len(path) - 1:
+    if counter< len(path) -1:
         x1, y1 = path[counter]
         x2, y2 = path[counter + 1]
         x_est = x1 - position[0]
@@ -62,22 +62,24 @@ def next_checkpoint2(path, position, counter,local_obstacle):
             y_est = y1 - position[1]
             dist = np.sqrt(x_est ** 2 + y_est ** 2) 
             if dist<10:  
-                counter = counter+1  
-                counter=counter+1
+                if counter< len(path) -1:
+                    counter = counter + 1 
                 x1, y1 = path[counter]
                 x_est = x1 - position[0]
                 y_est = y1 - position[1]
                 dist = np.sqrt(x_est ** 2 + y_est ** 2) 
                 if dist <12:
-                    counter = counter+1
+                    if counter< len(path) -1:
+                        counter = counter + 1
                     return np.array([path[counter][0], path[counter][1]]), counter
                 else : 
                     return np.array([path[counter][0], path[counter][1]]), counter
             else : 
                 return np.array([path[counter][0], path[counter][1]]), counter
 
-        if dist < 2:
-            counter = counter + 1
+        if dist < 1:
+            if counter< len(path) -1:
+                counter = counter + 1
             return np.array([path[counter][0], path[counter][1]]), counter
 
     return np.array([path[counter][0], path[counter][1]]), counter
