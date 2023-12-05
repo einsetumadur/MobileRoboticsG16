@@ -8,8 +8,8 @@ async def local_navigation(client,node,rob,obstacles):
 
     #This are the tuned weights for the left and the right motor.
     #The weights corresponds to how much should the motor respond to each proximity value measured by the sensors
-    w_l = [40,  20, -20, -40, -40]
-    w_r = [-40, -40, -20,  20,  40]
+    w_l = [40,  20, -40, -40, -40]
+    w_r = [-40, -40, -40,  20,  40]
 
     # Scale factors for sensors and constant factor
     sensor_scale = 2000
