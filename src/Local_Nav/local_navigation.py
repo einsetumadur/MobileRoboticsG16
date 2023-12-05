@@ -1,5 +1,6 @@
 from src.Local_Nav import psymap as pm
 from src.Motion_Control import thymio as th
+import numpy as np
 
 async def local_navigation(client,node,rob,obstacles):
     local_navigation_state=1
@@ -19,7 +20,9 @@ async def local_navigation(client,node,rob,obstacles):
     #Considering also the global obstacle as obstacles : 
     x_glob=pm.hallucinate_map(rob,obstacles)
 
+    #normal avoidance case
     if local_navigation_state:
+        
         for i in range(5):
             # Get and scale inputs
             x[i] = (proximity_values[i] +x_glob[i])// sensor_scale
@@ -35,5 +38,14 @@ async def local_navigation(client,node,rob,obstacles):
         # In case we would like to stop the robot
         y = [0,0] 
     
+    #considering the critical case where the left sensors tetect 
+    diff_left_right=abs((x[1]+x[2])-(x[4]+x[5]))
+    if(diff_left_right<2000 and sum(x)>3500):
+        if(x_glob[0]+x_glob[1]>x_glob[3]+x_glob[4]):
+            th.rotate(client,np.pi/2, 100)
+        else:
+            th.rotate(client,-np.pi/2, 100)
+        proximity_values = await th.get_proximity_values(client)
+
     # Set motor powers
     await th.motorset(node,y[0],y[1])
