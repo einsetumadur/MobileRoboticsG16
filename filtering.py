@@ -66,7 +66,6 @@ def ex_kalman_filter(speed, angular_speed, bool_camera, position_camera, previou
     r_nu_rotation = STD_ANGULAR_SPEED / 2 # variance on angular speed measurement
     q_nu_rotation = STD_ANGULAR_SPEED / 2 # variance on angular speed measurement
 
-    #qp = 0.04 # variance on position state in mm chosen arbitrarily: √qp = 0.2
     rp = 10 # variance on position measurement in mm
     rp_angle = 0.02 # variance on angle measurement in rad
 
@@ -77,7 +76,6 @@ def ex_kalman_filter(speed, angular_speed, bool_camera, position_camera, previou
                   [0, 0, 0, 0, q_nu_rotation]]) # process noise covariance matrix MUST CHANGE
     #Q = np.identity(5) * qp
 
-    #theta = previous_state_estimation[2] + previous_state_estimation[4] * dt
     theta = previous_state_estimation[2]
 
     A = np.array([[1, 0, 0, np.cos(theta).item() * dt, 0],
