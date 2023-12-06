@@ -120,7 +120,7 @@ def init(cap, REFRAME, MAP_SHAPE, VISUALIZE):
             HLS = cv2.cvtColor(frame, cv2.COLOR_BGR2HLS_FULL)
         
     
-            fmap = vs.get_grid_fixed_map(frame,(50,35),50, robrad=150)
+            fmap = vs.get_grid_fixed_map(frame,(50,35),50, robrad=100)
         
             # find dest position
             bool_dest, dest = vs.get_destination(frame)
@@ -135,6 +135,8 @@ def init(cap, REFRAME, MAP_SHAPE, VISUALIZE):
                 if gotpos : 
                     start=robpos
                     start[1]= 700 -start[1]
+                    if orient <0 :
+                        orient = orient +2*np.pi
                     state_estimation_prev2 = np.array([[start[0]],[start[1]], [orient], [0],[0]])
                     start = start/10.0
                     print(state_estimation_prev2)
