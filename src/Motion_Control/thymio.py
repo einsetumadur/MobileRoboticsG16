@@ -30,18 +30,18 @@ async def motorset(node,motor_speed_left,motor_speed_right):
     await node.set_variables(motors(motor_speed_left,motor_speed_right))
 
 async def rotate(client,theta, motor_speed): #theta is in radians
-    if not (abs(theta) < 0.01 ):
-        node = await client.wait_for_node()
-        if theta>=0:
-            direction_rot=1
-        else: 
-            direction_rot=0
-        await node.set_variables(motors(motor_speed*direction_rot, -motor_speed*direction_rot))
-        # wait time to get theta 1.44 is the factor to correct
-        time=(theta)*100/motor_speed*1.40
-        await(client.sleep(time))
-        # stop the robot
-        await node.set_variables(motors(0, 0))
+    
+    node = await client.wait_for_node()
+    if theta>=0:
+        direction_rot=1
+    else: 
+        direction_rot=-1
+    await node.set_variables(motors(motor_speed*direction_rot, -motor_speed*direction_rot))
+    # wait time to get theta 1.44 is the factor to correct
+    time=(abs(theta))*100/motor_speed*1.40
+    await(client.sleep(time))
+    # stop the robot
+    await node.set_variables(motors(0, 0))
 
 async def stop_motor(node):
     await node.set_variables(motors(0,0))
