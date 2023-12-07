@@ -4,42 +4,15 @@ import numpy as np
 import time
 import math
 
-
+#function that resets the robot's position and recalculates the path for the new position.
 async def kidnapping(node, cap, REFRAME, MAP_SHAPE, VISUALIZE):
     await th.stop_motor(node)
     print("determination of new path")
     th.init(cap, REFRAME, MAP_SHAPE, VISUALIZE) #calculate new path
-    #Attention, oublier pas de remettre le state estimate du filtering à 0 aubin
 
-
-#Local navigation : Documentation.
-#The requirements of local navigation is to react to obstacles not detected previusly by the camera.
-#In our case, we 3D printed the local obstacles and in white so that they won't be detected by the camera.
-#The main requirement is to avoid the obstacle. We do this by implemennting  
-
-# def find_nearest_obstacle_direction(obstacles, center, orient):
-#     center[0]=robot_x
-#     center[1]=robot_y
-#     # Calcule les distances entre le robot et chaque obstacle
-#     distances = [math.sqrt((obstacle[0] - robot_x)**2 + (obstacle[1] - robot_y)**2) for obstacle in obstacles]
-
-#     # Trouve l'index de l'obstacle le plus proche
-#     nearest_obstacle_index = distances.index(min(distances))
-
-#     # Calcule l'angle entre le robot et l'obstacle le plus proche
-#     angle_to_obstacle = math.atan2(obstacles[nearest_obstacle_index][1] - robot_y, obstacles[nearest_obstacle_index][0] - robot_x)
-
-#     # Calcule la différence d'angle entre l'angle du robot et l'angle vers l'obstacle
-#     angle_difference = angle_to_obstacle - orient
-
-#     # Détermine si l'obstacle est à gauche ou à droite du robot
-#     if -math.pi/2 < angle_difference < math.pi/2:
-#         print("Obstacle global closer on the right")
-#         return -1
-#     else:
-#         print("Obstacle global closer on the left")
-#         return 1
-
+#If the robot did not manage to avoid the obstacle with the ANN and the obstacle is detected very close to the robot,
+#then we stop the thymio and go into front_avoidance_mode. After a lot of test, we noticed that this is specially the case 
+#when the obstacle is placed late in front of thymio and its surface is orthogonal to the robot's direction.
 async def Front_obst_avoidance_seq(client,node,angle):
         print("critical obsatcle avoidance mode")
         await th.stop_motor(node)
@@ -93,10 +66,7 @@ async def local_navigation(client,node,rob,obstacles):
 #for small obstacles, when it's surface is orthogonal to the robots direction.
 
     if(proximity_values[2]>3800):
-        index=2
-        #sens=find_nearest_obstacle_direction(obstacles, center, orient)
         await Front_obst_avoidance_seq(client,node,np.pi/2)
-        print("aaaaaaa")
             
 
     
