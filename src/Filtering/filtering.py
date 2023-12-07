@@ -8,7 +8,7 @@ REAL_THYMIO_ANGULAR_SPEED = 0.70 # 0.75 rad/s
 COMMAND_MOTOR_FOR_CALIBRATION = 100
 STD_SPEED = 3 #mm^2/s^2
 STD_ANGULAR_SPEED = 0.04 #rad^2/s^2
-RP = 10 # variance on position measurement in mm
+RP = 20 # variance on position measurement in mm
 RP_ANGLE = 0.02 # variance on angle measurement in rad
 
 class RepeatedTimer(object):
@@ -93,6 +93,8 @@ def ex_kalman_filter(speed, angular_speed, bool_camera, position_from_camera, pr
     ## Update Step      
     if bool_camera and position_from_camera is not None:
         # camera position is available
+        n, _ = divmod(previous_state_estimation[2], 2 * math.pi)
+        position_from_camera[2] = n * 2 * math.pi + position_from_camera[2]
         y = np.array([[position_from_camera[0]],[position_from_camera[1]], [position_from_camera[2]], [speed], [angular_speed]])
         H = np.identity(5)
         R = np.array([[RP, 0, 0, 0, 0],
@@ -125,8 +127,12 @@ async def get_position(state_estimation, P_estimation, start_time, camera_got_po
     right_speed = node["motor.right.speed"]
     speed, angular_speed = speed_estimation(left_speed, right_speed)
 
+<<<<<<< HEAD
     n, _ = divmod(state_estimation[2], 2 * np.pi)
     position_from_camera[2] = n * 2 * np.pi + position_from_camera[2]
+=======
+    
+>>>>>>> daa5861764d2352944f489fa9a09173c4b0ee2d0
 
     dt = time.time() - start_time 
     state_estimation, P_estimation = ex_kalman_filter(speed, angular_speed, camera_got_pos, position_from_camera, state_estimation, P_estimation, dt)
