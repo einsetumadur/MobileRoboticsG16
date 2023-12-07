@@ -87,12 +87,13 @@ def reorder_border(corners):
     else:
         return False,ordered
 
-def get_warp(cap,ROI,pad=0,samples=1):
+def get_warp(cap,ROI,pad=0,samples=1,verbose=False):
     kernel = np.ones((4,4),np.uint8)
     rw = ROI[0] - pad
     rh = ROI[1] - pad
     Sheetpts = np.float32([[pad,pad],[rw,pad],[pad,rh],[rw,rh]])
-    #print("Computing warp matrix")
+    if verbose:
+        print("Computing warp matrix")
     smp = 0
     corners = np.zeros((4,2,samples))
     while smp < samples:
@@ -103,14 +104,16 @@ def get_warp(cap,ROI,pad=0,samples=1):
             Blue = cv2.morphologyEx(Blue, cv2.MORPH_CLOSE,kernel)
             ndot,corn = blob_point_list(Blue,CORNER_BLOB_FILT,CORNER_BLOB_VAL)
             corn = np.float32(corn)
-            print("progress {} valid samples".format(ndot,smp),end='\r')
+            if verbose:
+                print("progress {} valid samples".format(ndot,smp),end='\r')
             if ndot == 4:
                 valid,corn = reorder_border(corn)
                 if valid:
                     corners[:,:,smp] = corn
                     smp += 1
     avgCorn = np.mean(corners,axis=2,dtype=np.float32)    
-    #print("Finished Warp Matrix computation.")       
+    if verbose:
+        print("Finished Warp Matrix computation.")       
     return cv2.getPerspectiveTransform(avgCorn,Sheetpts)
 
 def get_warp_image(cimg,ROI,pad=0):
@@ -282,6 +285,7 @@ def show_Kalman(img,mu,sigma,scale,color=(0,0,100),thickness=2):
     width = int(width)
     height = int(height)
     img = cv2.ellipse(img,center,(width,height),angle,0,360,color,thickness)
+    img = cv2.ellipse(img,center,(2*width,2*height),angle,0,360,color,thickness)
     ang = mu[2][0]
     spdvect = scale*(mu[3][0])*np.array([np.cos(ang),np.sin(ang)])
     dirvect = np.add(center,spdvect).astype(np.int32)

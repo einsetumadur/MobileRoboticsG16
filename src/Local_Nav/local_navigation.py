@@ -4,6 +4,14 @@ import numpy as np
 import time
 import math
 
+
+async def kidnapping(node, cap, REFRAME, MAP_SHAPE, VISUALIZE):
+    await th.stop_motor(node)
+    print("determination of new path")
+    th.init(cap, REFRAME, MAP_SHAPE, VISUALIZE) #calculate new path
+    #Attention, oublier pas de remettre le state estimate du filtering à 0 aubin
+
+
 #Local navigation : Documentation.
 #The requirements of local navigation is to react to obstacles not detected previusly by the camera.
 #In our case, we 3D printed the local obstacles and in white so that they won't be detected by the camera.
