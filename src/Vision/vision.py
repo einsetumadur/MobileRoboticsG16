@@ -290,3 +290,17 @@ def show_Kalman(img,mu,sigma,scale,color=(0,0,100),thickness=2):
     spdvect = scale*(mu[3][0])*np.array([np.cos(ang),np.sin(ang)])
     dirvect = np.add(center,spdvect).astype(np.int32)
     map = cv2.line(map,center,dirvect,200,1)
+
+def show_path(frame,path,cell_size,epsilon,color=(50,255,30),thick=2):
+    path = np.array(path,dtype=np.int32)
+    trajectory = []
+    for ptcell in path:
+        ptcell[1] = MAP_SHAPE_CELL[1]-ptcell[1]
+        ptmm = ptcell*cell_size
+        ptmm += [cell_size//2,cell_size//2]
+        trajectory.append(ptmm)
+    for i in range(1,len(trajectory)):
+        frame = cv2.line(frame,trajectory[i-1],trajectory[i],color,thick)
+        frame = cv2.circle(frame,trajectory[i],epsilon,color,thick)
+
+    return frame
