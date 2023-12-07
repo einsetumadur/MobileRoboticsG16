@@ -61,7 +61,8 @@ async def get_proximity_ground_values(client):
     # Wait for the proximity sensor variables
     await node.wait_for_variables({"prox.ground.delta"})
     # Get the proximity values : v: Stands for "variables" and is used to access the cached variable values.
-    proximity_ground_values = node.v.prox.ground
+    proximity_ground_values = node.v.prox.ground.delta
+    #print(proximity_ground_values)
     return proximity_ground_values[0:2]
 
 
