@@ -95,6 +95,8 @@ def ex_kalman_filter(speed, angular_speed, bool_camera, position_from_camera, pr
     ## Update Step      
     if bool_camera and position_from_camera is not None:
         # camera position is available
+        n, _ = divmod(previous_state_estimation[2], 2 * math.pi)
+        position_from_camera[2] = n * 2 * math.pi + position_from_camera[2]
         y = np.array([[position_from_camera[0]],[position_from_camera[1]], [position_from_camera[2]], [speed], [angular_speed]])
         H = np.identity(5)
         R = np.array([[RP, 0, 0, 0, 0],
@@ -127,8 +129,7 @@ async def get_position(state_estimation, P_estimation, start_time, bool_camera, 
     right_speed = node["motor.right.speed"]
     speed, angular_speed = speed_estimation(left_speed, right_speed)
 
-    n, _ = divmod(state_estimation[2], 2 * math.pi)
-    position_from_camera[2] = n * 2 * math.pi + position_from_camera[2]
+    
 
     dt = time.time() - start_time 
     state_estimation, P_estimation = ex_kalman_filter(speed, angular_speed, bool_camera, position_from_camera, state_estimation, P_estimation, dt)

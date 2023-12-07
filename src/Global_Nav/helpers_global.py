@@ -8,7 +8,7 @@ import cv2
 
 
 # give the path with point of changing direction
-def global_final(occupancy_grid, start, goal, movement , plot=False, simplify): 
+def global_final(occupancy_grid, start, goal, movement , plot=False, simplify= 0.8): 
     occupancy_grid = cv2.flip(occupancy_grid,1)
     
     if plot:
