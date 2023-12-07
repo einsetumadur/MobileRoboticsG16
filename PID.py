@@ -1,7 +1,7 @@
 import math
 import numpy as np
 
-def PIDController(gain, angle_error):
+def PIDController(gain,speed, angle_error):
     Kp = gain
     #Ki = 3
     #angle_integral = 0
@@ -12,6 +12,6 @@ def PIDController(gain, angle_error):
    # angle_integral += angle_error
     #I_angle = Ki * angle_integral
     # Calculate left and right wheel speeds
-    left_wheel_speed = int(np.floor(100 + P_angle ))
-    right_wheel_speed = int(np.floor(100 - P_angle ))
+    left_wheel_speed = int(np.floor(speed + P_angle ))
+    right_wheel_speed = int(np.floor(speed - P_angle ))
     return left_wheel_speed, right_wheel_speed
