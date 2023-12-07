@@ -38,15 +38,13 @@ class RepeatedTimer(object):
 
 def speed_estimation(left_speed, right_speed):
     speed_measured = (right_speed + left_speed) / 2
-    speed = (speed_measured * REAL_THYMIO_SPEED) / COMMAND_MOTOR_FOR_CALIBRATION #NOUS
-    #speed = (speed_measured * COMMAND_MOTOR_FOR_CALIBRATION) / REAL_THYMIO_SPEED #PROF
+    speed = (speed_measured * REAL_THYMIO_SPEED) / COMMAND_MOTOR_FOR_CALIBRATION
     angular_speed_measured = (right_speed - left_speed) / 2
     angular_speed = (angular_speed_measured * REAL_THYMIO_ANGULAR_SPEED) / COMMAND_MOTOR_FOR_CALIBRATION
-    #angular_speed = (angular_speed_measured * COMMAND_MOTOR_FOR_CALIBRATION) / REAL_THYMIO_ANGULAR_SPEED
+
     return speed, angular_speed
 
-def ex_kalman_filter(speed, angular_speed, bool_camera, position_from_camera, previous_state_estimation, previous_covariance_estimation,
-                     dt, HT=None, HNT=None, RT=None, RNT=None):
+def ex_kalman_filter(speed, angular_speed, bool_camera, position_from_camera, previous_state_estimation, previous_covariance_estimation, dt):
     """
     Estimates the current state using the speed sensor data, the camera position estimation and the previous state
     
@@ -61,16 +59,16 @@ def ex_kalman_filter(speed, angular_speed, bool_camera, position_from_camera, pr
 
     # Initialising the constants
     #Assuming that half of the varance is caused by the measurements and half by perturbations to the states
-    q_nu_translation = STD_SPEED / 2 # variance on speed measurement
+    q_nu_translation = STD_SPEED / 2 # variance on speed state
     r_nu_translation = STD_SPEED / 2 # variance on speed measurement
+    q_nu_rotation = STD_ANGULAR_SPEED / 2 # variance on angular speed state
     r_nu_rotation = STD_ANGULAR_SPEED / 2 # variance on angular speed measurement
-    q_nu_rotation = STD_ANGULAR_SPEED / 2 # variance on angular speed measurement
 
     Q = np.array([[0, 0, 0, 0, 0],
                   [0, 0, 0, 0, 0],
                   [0, 0, 0, 0, 0],
                   [0, 0, 0, q_nu_translation, 0],
-                  [0, 0, 0, 0, q_nu_rotation]]) # process noise covariance matrix MUST CHANGE
+                  [0, 0, 0, 0, q_nu_rotation]]) # process noise covariance matrix
 
     theta = previous_state_estimation[2]
 
@@ -123,19 +121,24 @@ def ex_kalman_filter(speed, angular_speed, bool_camera, position_from_camera, pr
      
     return state_estimation, P_estimation
 
-async def get_position(state_estimation, P_estimation, start_time, bool_camera, position_from_camera, node):
+async def get_position(state_estimation, P_estimation, start_time, camera_got_pos, position_from_camera, node):
     await node.wait_for_variables()
     left_speed = node["motor.left.speed"]
     right_speed = node["motor.right.speed"]
     speed, angular_speed = speed_estimation(left_speed, right_speed)
 
+<<<<<<< HEAD
+    n, _ = divmod(state_estimation[2], 2 * np.pi)
+    position_from_camera[2] = n * 2 * np.pi + position_from_camera[2]
+=======
     
+>>>>>>> daa5861764d2352944f489fa9a09173c4b0ee2d0
 
     dt = time.time() - start_time 
-    state_estimation, P_estimation = ex_kalman_filter(speed, angular_speed, bool_camera, position_from_camera, state_estimation, P_estimation, dt)
+    state_estimation, P_estimation = ex_kalman_filter(speed, angular_speed, camera_got_pos, position_from_camera, state_estimation, P_estimation, dt)
     start_time = time.time()
 
-    angle = state_estimation[2] % (2 * math.pi) 
-    if angle > math.pi: angle -= 2 * math.pi
+    angle = state_estimation[2] % (2 * np.pi) 
+    if angle > np.pi: angle -= 2 * np.pi
 
     return state_estimation, P_estimation, speed, angular_speed, start_time, angle
