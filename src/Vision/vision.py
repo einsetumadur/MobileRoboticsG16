@@ -156,7 +156,6 @@ def paint_robot(frame,col,pos,ori,scal):
     Cp = (rotMat @ [width,back] + pos).astype(int)
     Dp = (rotMat @ [width,-upcorn] + pos).astype(int)
     front = (rotMat @ [0,-radius] + pos).astype(int)
-    #print("A{} B{} C{} D{} front{}".format(Ap,Bp,Cp,Dp,front))
     frame = cv2.line(frame,Ap,Bp,color=col,thickness=thick)
     frame = cv2.line(frame,Bp,Cp,color=col,thickness=thick)
     frame = cv2.line(frame,Cp,Dp,color=col,thickness=thick)
@@ -202,8 +201,8 @@ def grid_fixedmap_visualizer(fmap,shape):
     fmap = fmap*255
     return cv2.resize(fmap, shape, interpolation=cv2.INTER_NEAREST)
 
-def get_obstacles(frame,tresh=50,eps=10,robrad=0):
-    kernel = np.ones((5,5),np.uint8)
+def get_obstacles(frame,tresh=50,eps=10,robrad=0,kernsize=5):
+    kernel = np.ones((kernsize,kernsize),np.uint8)
     pxmap = cv2.inRange(frame,(0,0,0),(tresh,tresh,tresh))
     pxmap = cv2.morphologyEx(pxmap,cv2.MORPH_OPEN,kernel)
     if robrad != 0:
@@ -225,8 +224,8 @@ def draw_obstacles_poly(frame,obs_poly,color,thickness):
             frame = cv2.circle(frame,pts,2*thickness,color,thickness)
     return frame
     
-def get_destination(frame):
-    kernel = np.ones((5,5),np.uint8)
+def get_destination(frame,kernsize=5):
+    kernel = np.ones((kernsize,kernsize),np.uint8)
     hslimg = cv2.cvtColor(frame, cv2.COLOR_BGR2HLS_FULL)
     Green = cv2.inRange(hslimg, GREEN_HSL_MIN, GREEN_HSL_MAX)
     Green = cv2.morphologyEx(Green, cv2.MORPH_CLOSE,kernel)
@@ -248,7 +247,7 @@ def get_Robot_position_orientation(hls_frame,kernsize=5):
     Red = cv2.morphologyEx(Red, cv2.MORPH_CLOSE, kernel)
     ndot,ptlist = blob_point_list(Red,ROBOT_BLOB_FILT,ROBOT_BLOB_VAL)
 
-    # 3 - compute distances
+    # 2 - compute pairwise distances
     d_table = np.zeros((ndot,ndot))
     if (ndot >= 3):
         for p1 in range(0,ndot-1):
@@ -257,10 +256,11 @@ def get_Robot_position_orientation(hls_frame,kernsize=5):
     else: 
         print("shape points {}/3".format(ndot),end='\r')
         return False,[0,0],0,0
+    
+    # 3 check for pattern
     dmax = np.max(d_table)
     longidx = np.int8(abs(dmax - d_table) < EPSILON_PIXEL)
     shortidx = np.int8(abs(dmax*SHAPE_RATIO - d_table) < EPSILON_PIXEL)
-    #print("long:{} short:{}".format(np.sum(longidx),np.sum(shortidx)))
     if(np.sum(shortidx) == 1 and np.sum(longidx) == 2):
     # 4 - compute pos and orientation
         pairAB = np.where(shortidx == 1)
