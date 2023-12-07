@@ -277,30 +277,33 @@ def get_Robot_position_orientation(hls_frame,kernsize=5):
         return False,[0,0],0,0
     
 def show_Kalman(img,mu,sigma,scale,color=(0,0,100),thickness=2):
-    center = mu[:2].transpose()[0].astype(int)
+    mmu = np.copy(mu)
+    mmu[1] = 700 - mmu[1]
+    center = mmu[:2].transpose()[0].astype(int)
     img = cv2.circle(img,center,2,color,thickness)
     u, s, Vt = np.linalg.svd(sigma)
     angle = np.degrees(np.arctan2(u[1, 0], u[0, 0]))
-    width, height,angvar,spvar,angdotvar = np.sqrt(s)
+    width, height,angvar,spvar,angdotvar = 2*np.sqrt(s)
     width = int(width)
     height = int(height)
     img = cv2.ellipse(img,center,(width,height),angle,0,360,color,thickness)
     img = cv2.ellipse(img,center,(2*width,2*height),angle,0,360,color,thickness)
-    ang = mu[2][0]
-    spdvect = scale*(mu[3][0])*np.array([np.cos(ang),np.sin(ang)])
+    ang = -mmu[2][0]
+    spdvect = scale*(mmu[3][0])*np.array([np.cos(ang),np.sin(ang)])
     dirvect = np.add(center,spdvect).astype(np.int32)
-    map = cv2.line(map,center,dirvect,200,1)
+    img = cv2.line(img,center,dirvect,color,thickness)
+    return img
 
 def show_path(frame,path,cell_size,epsilon,color=(50,255,30),thick=2):
-    path = np.array(path,dtype=np.int32)
+    modpath = np.array(path,dtype=np.int32)
     trajectory = []
-    for ptcell in path:
-        ptcell[1] = MAP_SHAPE_CELL[1]-ptcell[1]
+    for ptcell in modpath:
+        ptcell[1] = 35 - ptcell[1]
         ptmm = ptcell*cell_size
         ptmm += [cell_size//2,cell_size//2]
         trajectory.append(ptmm)
     for i in range(1,len(trajectory)):
         frame = cv2.line(frame,trajectory[i-1],trajectory[i],color,thick)
-        frame = cv2.circle(frame,trajectory[i],epsilon,color,thick)
+        frame = cv2.circle(frame,trajectory[i],int(epsilon),color,thick)
 
     return frame
