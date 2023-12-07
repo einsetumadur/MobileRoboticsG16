@@ -4,7 +4,7 @@ import cv2
 #sensors points for prox horizontal in mm relative to robot center
 SENSE_PROX_LIST = [[51,61],[27,75],[0,80],[-27,75],[-51,61],[-32,-30],[32,-30]]
 #sensor range expected to be 0-50mm
-SENSE_RANGE_LIST = [[32,38],[17,47],[0,50],[-17,47],[-32,38],[0,50],[0,-50]]
+SENSE_RANGE_LIST = [[32,38],[17,47],[0,50],[-17,47],[-32,38],[0,-50],[0,-50]]
 OVER_RANGE = 100
 PROX_MAX = 5000
 PROX_MIN = 2800
