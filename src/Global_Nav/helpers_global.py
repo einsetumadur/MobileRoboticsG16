@@ -8,7 +8,7 @@ import cv2
 
 
 # give the path with point of changing direction
-def global_final(occupancy_grid, start, goal, movement , plot=False): 
+def global_final(occupancy_grid, start, goal, movement , plot=False, simplify): 
     occupancy_grid = cv2.flip(occupancy_grid,1)
     
     if plot:
@@ -21,7 +21,7 @@ def global_final(occupancy_grid, start, goal, movement , plot=False):
         plt.title("Map : free cells in white, occupied cells in black")
 
     path, visitedNodes = get_path(occupancy_grid, start, goal, movement)
-    path = douglas_peucker(path, 0.8)
+    path = douglas_peucker(path, simplify)
     if plot:
         path2 =np.array(path).reshape(-1, 2).transpose()
         print('Map with optimal path')

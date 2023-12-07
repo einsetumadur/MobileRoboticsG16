@@ -5,10 +5,13 @@ import time
 
 TS = 0.1
 REAL_THYMIO_SPEED = 37.7 #mm/s
-REAL_THYMIO_ANGULAR_SPEED = 0.75 #rad/s
+#REAL_THYMIO_ANGULAR_SPEED = 0.75 #rad/s
+REAL_THYMIO_ANGULAR_SPEED = 0.70#rad/s
 COMMAND_MOTOR_FOR_CALIBRATION = 100
 STD_SPEED = 3 #mm^2/s^2
 STD_ANGULAR_SPEED = 0.04 #rad^2/s^2
+qp =0.04
+rp = 0.25
 
 class RepeatedTimer(object):
     def __init__(self, interval, function, *args, **kwargs):
@@ -87,7 +90,6 @@ def ex_kalman_filter(speed, angular_speed, bool_camera, position_camera, previou
     ## Prediciton Step, through the previous estimation
     predicted_state_estimation = np.dot(A, previous_state_estimation)
     #print("predicted_state_estimation angle", predicted_state_estimation[2])
-    predicted_state_estimation[2] = predicted_state_estimation[2] % (2 * math.pi) # normalize the angle between 0 and 2pi    
 
     predicted_state_estimation_jacobian = np.array([[1, 0, - previous_state_estimation[3].item() * np.sin(theta).item() * dt, np.cos(theta).item() * dt, 0], 
                                                     [0, 1, previous_state_estimation[3].item() * np.cos(theta).item() * dt, np.sin(theta).item() * dt, 0],
@@ -102,7 +104,7 @@ def ex_kalman_filter(speed, angular_speed, bool_camera, position_camera, previou
     ## Update Step      
     if bool_camera and position_camera is not None:
         # camera position is available
-        y = np.array([[position_camera[0:2]], [speed], [angular_speed]])
+        y = np.array([[position_camera[0]],[position_camera[1]], [position_camera[2]], [speed], [angular_speed]])
         H = np.identity(5)
         R = np.array([[rp, 0, 0, 0, 0],
                       [0, rp, 0, 0, 0],
@@ -126,13 +128,17 @@ def ex_kalman_filter(speed, angular_speed, bool_camera, position_camera, previou
     #print("K", K)
     # Updated state and covariance estimate
     state_estimation = predicted_state_estimation + np.dot(K, i)
+    state_estimation[2] = state_estimation[2] % (2 * math.pi) 
+    
+    # normalize the angle between 0 and 2pi    
     #print("np.dot(K, i)", np.dot(K, i))
     #print("new state_estimation angle", state_estimation[2])
     P_estimation = np.dot((np.identity(5) - np.dot(K, H)), predicted_covariance_estimation)
      
     return state_estimation, P_estimation
 
-async def get_position(state_estimation, P_estimation, start_time, bool_camera, camera_position, node):
+async def get_position(state_estimation, P_estimation, start_time, bool_camera, camera_position, node, TS):
+    print(bool_camera)
     await node.wait_for_variables()
     #await get_speed(client, node)
     left_speed = node["motor.left.speed"]
@@ -146,3 +152,5 @@ async def get_position(state_estimation, P_estimation, start_time, bool_camera, 
     #print("theta", state_estimation[2] * 180 / math.pi, "omega", state_estimation[4])
 
     return state_estimation, P_estimation, speed, angular_speed, start_time
+
+

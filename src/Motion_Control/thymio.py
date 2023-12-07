@@ -103,7 +103,7 @@ def convert_to_idx(position, size_cell):
 
 
 
-def init(cap, REFRAME, MAP_SHAPE, VISUALIZE): 
+def init(cap, REFRAME, MAP_SHAPE, VISUALIZE,robroad2 = 80,  simplify=0.8): 
     # Get the path 
 
     if REFRAME:
@@ -120,7 +120,7 @@ def init(cap, REFRAME, MAP_SHAPE, VISUALIZE):
             HLS = cv2.cvtColor(frame, cv2.COLOR_BGR2HLS_FULL)
         
     
-            fmap = vs.get_grid_fixed_map(frame,(50,35),50, robrad=100)
+            fmap = vs.get_grid_fixed_map(frame,(50,35),50, robrad=robroad2)
         
             # find dest position
             bool_dest, dest = vs.get_destination(frame)
@@ -142,7 +142,7 @@ def init(cap, REFRAME, MAP_SHAPE, VISUALIZE):
                     print(state_estimation_prev2)
                     start = gb.convert_to_idx(start,2)
                     start = tuple(start)
-                    path = gb.global_final(fmap,start,dest, "8N", VISUALIZE)
+                    path = gb.global_final(fmap,start,dest, "8N", VISUALIZE, simplify)
                     P_estimation_prev =  np.diag([100, 100, 0.75, 10, 0.75])
                     
                     break
