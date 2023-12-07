@@ -8,7 +8,7 @@ REAL_THYMIO_ANGULAR_SPEED = 0.70 # 0.75 rad/s
 COMMAND_MOTOR_FOR_CALIBRATION = 100
 STD_SPEED = 3 #mm^2/s^2
 STD_ANGULAR_SPEED = 0.04 #rad^2/s^2
-RP = 10 # variance on position measurement in mm
+RP = 20 # variance on position measurement in mm
 RP_ANGLE = 0.02 # variance on angle measurement in rad
 
 class RepeatedTimer(object):
